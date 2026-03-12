@@ -1,1 +1,26 @@
+# Core
+Flask==2.3.4
+requests==2.31.0
+websocket-client==1.6.3
+redis==5.2.0
+pillow==10.1.0
 
+# OCR
+pytesseract==0.3.11
+
+# PyTorch (GPU recommended)
+torch==2.3.0
+torchvision==0.18.1
+torchaudio==2.3.0
+
+# Optional: YOLOv8 support (Ultralytics)
+ultralytics==8.0.152
+
+# Prometheus metrics
+prometheus-client==0.21.0
+
+# Utility
+python-dotenv==1.0.0
+
+# Async / concurrency
+gevent==23.10.2
