@@ -1,1 +1,89 @@
+version: "3.9"
 
+services:
+
+  # ---------------------------
+  # NodeSight Gateway (WebSocket)
+  # ---------------------------
+  gateway:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.gateway
+    ports:
+      - "8080:8080"
+    environment:
+      NODE_ENV: production
+      GATEWAY_PORT: 8080
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_STREAM_NAME: nodesight_stream
+      WS_HEARTBEAT_INTERVAL: 15000
+      WS_MAX_RECONNECTS: 5
+    depends_on:
+      - redis
+      - kafka
+
+  # ---------------------------
+  # NodeSight GPU Worker
+  # ---------------------------
+  worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.worker
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_STREAM_NAME: nodesight_stream
+      USE_GPU: "true"
+    depends_on:
+      - redis
+      - kafka
+
+  # ---------------------------
+  # Redis for Job Queue
+  # ---------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: nodesight-redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--save", "900", "1"]
+
+  # ---------------------------
+  # Kafka (High-throughput queue)
+  # ---------------------------
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  # ---------------------------
+  # Optional Monitoring / Metrics
+  # ---------------------------
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
