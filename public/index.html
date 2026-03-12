@@ -1,11 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>NodeSight - AI Image Analyzer</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-  <div id="root"></div>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#673ab7" />
+    <meta
+      name="description"
+      content="NodeSight: AI-powered image analysis for the Pi Network ecosystem."
+    />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <title>NodeSight | AI Analysis for Pi</title>
+
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <script>
+      Pi.init({ version: "2.0", sandbox: <%= process.env.NODE_ENV === 'development' %> });
+    </script>
+
+    <style>
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background-color: #f8f9fa;
+        color: #212529;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      #root {
+        flex: 1;
+      }
+      /* Loading state for Pi Browser */
+      .pi-loader {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run NodeSight.</noscript>
+    
+    <div id="root">
+      <div class="pi-loader">
+        <p>Initializing NodeSight AI...</p>
+      </div>
+    </div>
+
+    </body>
 </html>
