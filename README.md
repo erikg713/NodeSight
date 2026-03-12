@@ -1,7 +1,3 @@
-Here is a **clean, professional `nodesight/README.md`** that fits the architecture you've been building. It explains the purpose of **NodeSight**, how it integrates with PiGuard, and how to run it.
-
----
-
 # NodeSight
 
 **NodeSight** is the distributed threat-monitoring layer of PiGuard. It observes system activity, analyzes suspicious behavior, and streams intelligence to the PiGuard security engine in real time.
@@ -186,4 +182,3 @@ MIT License
 
 ---
 
-If you want, I can also generate the **`nodesight/nodesight.py` core monitoring engine**, which would turn NodeSight into a **real distributed fraud sensor network** for PiGuard.
