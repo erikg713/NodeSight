@@ -88,9 +88,9 @@ nodesight/
 * AI engine enabled
 
 Install dependencies:
-
-```bash
-pip install -r requirements.txt
+```
+pip install -r backend/requirements.txt
+pip install node backend/server.js
 ```
 
 ---
