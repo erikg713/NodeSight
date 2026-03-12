@@ -8,7 +8,6 @@ const aggregator = require("./services/aggregator");
 const nodeDistributor = require("./utils/nodeDistributor");
 const sessionManager = require("./utils/sessionManager");
 const { register, activeSessionsGauge } = require("./utils/metrics");
-const client = require("prom-client");
 
 // ----------------------------
 // Express App Setup
@@ -27,9 +26,7 @@ app.get("/metrics", async (req, res) => {
   res.end(await register.metrics());
 });
 
-// ----------------------------
-// Optional static files for demo
-// ----------------------------
+// Optional: static demo files
 app.use(express.static("public"));
 
 // ----------------------------
@@ -57,7 +54,7 @@ nodeDistributor.addNode("worker-2", process.env.WORKER_WS_URL2 || "ws://worker-2
 const shutdown = () => {
   logger.info("Shutting down NodeSight server...");
   wss.close();
-  process.exit(0);
+  server.close(() => process.exit(0));
 };
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
@@ -70,18 +67,3 @@ server.listen(PORT, () => {
   logger.info(`[NodeSight] Server running on http://localhost:${PORT}`);
   logger.info("[NodeSight] WebSocket server initialized");
 });
-
-const express = require("express");
-const http = require("http");
-const cors = require("cors");
-const setupStream = require("./routes/stream");
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-const server = http.createServer(app);
-setupStream(server);
-
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`NodeSight backend running on port ${PORT}`));
