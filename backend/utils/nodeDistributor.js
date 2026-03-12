@@ -69,14 +69,13 @@ class NodeDistributor {
     }
     return status;
   }
-}
 
-module.exports = new NodeDistributor();
-
-// Optional placeholder for distributed Pi node inference
-module.exports = {
-  distributeTask: async (imageBuffer) => {
+  // Optional placeholder for distributed Pi node inference
+  async distributeTask(imageBuffer) {
     // Future implementation: send image to multiple nodes
     return await Promise.resolve("Distributed inference placeholder");
   }
-};
+}
+
+// Export a singleton instance
+module.exports = new NodeDistributor();
