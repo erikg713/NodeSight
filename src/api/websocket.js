@@ -1,114 +1,92 @@
 /**
- * NodeSight WebSocket Utility
- * Handles real-time communication between the mobile client and 
- * distributed Pi Nodes for offloaded AI processing.
+ * NodeSight WebSocket Utility Suite
+ * Consolidates distributed node cluster communication and session-based 
+ * image streaming for real-time AI feedback.
  */
 
-class NodeSightSocket {
+// 1. Singleton for general cluster status and background offloading
+class NodeSightCluster {
   constructor() {
     this.socket = null;
     this.url = process.env.REACT_APP_NODE_WS_URL || "wss://node-cluster.pinetwork.com/ws";
     this.reconnectAttempts = 0;
-    this.maxReconnectAttempts = 5;
   }
 
-  /**
-   * Initializes the connection to a distributed processing node.
-   * @param {Function} onMessage - Callback for incoming AI results.
-   * @param {Function} onError - Callback for connection issues.
-   */
-  connect(onMessage, onError) {
-    try {
-      this.socket = new WebSocket(this.url);
-
-      this.socket.onopen = () => {
-        console.log("Connected to NodeSight Distributed Cluster");
-        this.reconnectAttempts = 0;
-      };
-
-      this.socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        onMessage(data);
-      };
-
-      this.socket.onerror = (err) => {
-        console.error("WebSocket Error:", err);
-        if (onError) onError(err);
-      };
-
-      this.socket.onclose = () => {
-        console.log("Connection closed. Attempting to rotate to nearest node...");
-        this.attemptReconnect(onMessage, onError);
-      };
-    } catch (e) {
-      console.error("Socket initialization failed", e);
-    }
+  connect(onMessage) {
+    this.socket = new WebSocket(this.url);
+    this.socket.onmessage = (event) => onMessage(JSON.parse(event.data));
+    this.socket.onclose = () => {
+      if (this.reconnectAttempts < 5) {
+        this.reconnectAttempts++;
+        setTimeout(() => this.connect(onMessage), 2000 * this.reconnectAttempts);
+      }
+    };
   }
 
-  /**
-   * Sends image metadata or low-res fragments for distributed inference.
-   * @param {Object} payload - The scan data (e.g., image hash or tensors).
-   */
-  sendScanRequest(payload) {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({
-        type: "OFFLOAD_INFERENCE",
-        timestamp: Date.now(),
-        ...payload
-      }));
-    } else {
-      console.warn("Socket not connected. Falling back to local device inference.");
-    }
-  }
-
-  attemptReconnect(onMessage, onError) {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      this.reconnectAttempts++;
-      setTimeout(() => {
-        this.connect(onMessage, onError);
-      }, 2000 * this.reconnectAttempts);
-    }
-  }
-
-  disconnect() {
-    if (this.socket) {
-      this.socket.close();
+  sendUpdate(payload) {
+    if (this.socket?.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify(payload));
     }
   }
 }
 
-export const nsSocket = new NodeSightSocket();
+export const nsCluster = new NodeSightCluster();
 
+// 2. Class for active Image Analysis sessions
 export default class NodeSightWS {
   constructor(sessionId, onPartial, onComplete, onError) {
+    // Note: Ensure this URL points to your Pi App Engine endpoint
     this.ws = new WebSocket("wss://your-app.piappengine.com/api/analyze/stream");
     this.sessionId = sessionId;
     this.onPartial = onPartial;
     this.onComplete = onComplete;
     this.onError = onError;
 
-    this.ws.onopen = this.onOpen.bind(this);
-    this.ws.onmessage = this.onMessage.bind(this);
-    this.ws.onerror = this.onError.bind(this);
-    this.ws.onclose = this.onClose.bind(this);
+    this.ws.onopen = () => console.log(`Session ${sessionId} connected`);
+    this.ws.onmessage = this.handleMessage.bind(this);
+    this.ws.onerror = (err) => this.onError("Streaming error: Check connection.");
+    this.ws.onclose = () => console.log("Streaming session closed.");
   }
 
-  onOpen() { console.log("Connected to NodeSight WebSocket API"); }
-
+  /**
+   * Sends image data to the server. 
+   * @param {string|Blob} imageData - Raw image data
+   */
   sendImage(imageData) {
-    const payload = { imageBase64: btoa(imageData), sessionId: this.sessionId };
+    if (this.ws.readyState !== WebSocket.OPEN) return;
+
+    // Payload uses base64 for the streaming API
+    const payload = { 
+      imageBase64: typeof imageData === 'string' ? btoa(imageData) : imageData, 
+      sessionId: this.sessionId,
+      timestamp: Date.now()
+    };
+    
     this.ws.send(JSON.stringify(payload));
   }
 
-  onMessage({ data }) {
-    const event = JSON.parse(data);
-    switch(event.type) {
-      case "partial": this.onPartial(event.objects); break;
-      case "complete": this.onComplete(event.result); break;
-      case "error": this.onError(event.message); break;
-      default: console.warn("Unknown event type:", event.type);
+  handleMessage({ data }) {
+    try {
+      const event = JSON.parse(data);
+      switch(event.type) {
+        case "partial": 
+          this.onPartial(event.objects); 
+          break;
+        case "complete": 
+          this.onComplete(event.result); 
+          break;
+        case "error": 
+          this.onError(event.message); 
+          break;
+        default: 
+          console.warn("Unknown socket event:", event.type);
+      }
+    } catch (err) {
+      console.error("Failed to parse socket message", err);
     }
   }
 
-  onClose() { console.log("WebSocket connection closed"); }
+  close() {
+    if (this.ws) this.ws.close();
+  }
 }
