@@ -1,184 +1,76 @@
-# NodeSight
+🛡️ NodeSight: Distributed AI Intelligence Cluster
+NodeSight is an enterprise-grade, distributed AI image analysis and threat-monitoring system designed for the Pi Network. It utilizes a microservices architecture to perform high-speed visual inference, OCR, and behavioral analysis across a cluster of specialized nodes.
 
-**NodeSight** is the distributed threat-monitoring layer of PiGuard. It observes system activity, analyzes suspicious behavior, and streams intelligence to the PiGuard security engine in real time.
+🏗️ System Architecture
+The system is split into three distinct layers to ensure low latency and high scalability:
 
-NodeSight runs alongside backend services and collects signals such as:
+Client (React Frontend): Performs initial image compression and edge-side partial results using TensorFlow.js.
 
-* suspicious API usage
-* abnormal request patterns
-* scam message detection
-* IP-level anomalies
-* fraud scoring events
+Gateway (Node.js): The central traffic controller. It authenticates Pioneers via the Pi SDK, manages WebSocket streams, and enforces the security model.
 
-These signals are processed by the PiGuard AI engine and surfaced on the security dashboard.
+Workers (Python/TensorFlow): Headless nodes that pull heavy workloads (Vision, OCR, Batch) from a Redis queue and return processed intelligence.
 
----
+📂 Project Structure
+🛰️ Backend Core
+gateway/server.js: High-concurrency entry point for WebSockets and API requests.
 
-# Architecture
+models/: Orchestrates local AI logic, including detection.py and specialized OCR/Vision models.
 
-NodeSight operates as a **local monitoring node** that feeds security telemetry into the PiGuard fraud intelligence system.
+queue/redis.js: Connectivity logic for the message broker (Redis).
 
-```
-Client Activity
-      ↓
-NodeSight Monitoring Node
-      ↓
-PiGuard Fraud Engine
-      ↓
-AI Detection Pipeline
-      ↓
-Security Dashboard
-```
+services/aggregator.js: Merges partial edge results with deep worker results into a final intelligence stream.
 
-NodeSight can be deployed on:
+utils/nodeDistributor.js: Load-balances tasks across available worker nodes.
 
-* backend servers
-* API gateways
-* edge nodes
-* monitoring containers
+🧠 AI Workers
+vision_worker.py: Dedicated computer vision node (MobileNet/YOLO).
 
----
+text_worker.py: Specialized OCR node for document and scam message analysis.
 
-# Features
+batch_worker.py: High-throughput processor for non-real-time fraud signal analysis.
 
-**Real-Time Threat Monitoring**
+📱 Frontend (React)
+components/: Modular UI including CameraCapture.js and real-time result streaming views.
 
-Streams security events to PiGuard.
+services/NodeSightWS.js: Manages the bi-directional WebSocket handshake with the Gateway.
 
-**Fraud Signal Aggregation**
+services/ImageCompressor.js: Optimizes image blobs before transmission to save bandwidth.
 
-Collects and forwards suspicious activity such as:
+🐳 Containerization & Orchestration
+NodeSight is designed to be deployed as a Dockerized cluster.
 
-* repeated login attempts
-* phishing messages
-* wallet verification scams
-* API abuse
+Dockerfile.gateway: Lightweight Node.js environment for the API and WebSocket server.
 
-**Distributed Security Nodes**
+Dockerfile.worker: Heavyweight Python environment pre-loaded with ML libraries and models.
 
-Multiple NodeSight instances can run simultaneously and report to the same PiGuard backend.
+docker-compose.yml: Orchestrates the Gateway, Workers, and Redis instances.
 
-**AI-Ready Telemetry**
+🚀 Deployment Guide
+1. Environment Configuration
+Copy .env.example to .env and configure your Pi Network Platform keys and Redis credentials.
 
-All signals are formatted for direct processing by the PiGuard AI modules.
+2. Launch via Docker (Recommended)
+Bash
+docker-compose up --build -d
+3. Manual Setup (Development)
+Start the Gateway:
 
----
+Bash
+cd backend/gateway && npm install && node server.js
+Start a Vision Worker:
 
-# Project Structure
+Bash
+cd backend/workers && pip install -r requirements.txt && python vision_worker.py
+🛠️ Tech Stack
+Frontend: React, TensorFlow.js, Lucide Icons
 
-```
-nodesight/
-│
-├── collectors/        # activity collection modules
-├── detectors/         # anomaly detection hooks
-├── transport/         # event streaming
-├── config/            # node configuration
-├── nodesight.py       # main node runner
-└── README.md
-```
+Gateway: Node.js, Express, Socket.io
 
----
+Queue: Redis
 
-# Installation
+Workers: Python 3.11, Flask, TensorFlow/PyTorch
 
-## Requirements
+DevOps: Docker, Docker Compose
 
-* Python 3.9+
-* Node.js backend running PiGuard
-* AI engine enabled
-
-Install dependencies:
-```
-pip install -r backend/requirements.txt
-pip install node backend/server.js
-```
-
----
-
-# Running NodeSight
-
-Start a monitoring node:
-
-```bash
-python nodesight.py
-```
-
-By default the node will connect to the PiGuard backend:
-
-```
-http://localhost:8000
-```
-
-You can change this in the configuration file.
-
----
-
-# Example Event
-
-Example telemetry sent to PiGuard:
-
-```json
-{
-  "timestamp": "2026-03-12T18:32:00Z",
-  "event_type": "fraud_detection",
-  "uid": "pi_user_123",
-  "ip": "192.168.1.10",
-  "risk": "high",
-  "score": 87,
-  "reason": "AI detected phishing pattern"
-}
-```
-
----
-
-# Integration with PiGuard
-
-NodeSight feeds events into the PiGuard AI engine:
-
-```
-NodeSight
-   ↓
-Fraud Detection Engine
-   ↓
-Embedding Analysis
-   ↓
-Scam Pattern Detection
-   ↓
-Dashboard Alert
-```
-
-Modules involved:
-
-```
-engine/
-├── les_transform.py
-├── lens_decoder.py
-├── scam_pattern_engine.py
-├── temporal_seed.py
-└── identity_token.py
-```
-
----
-
-# Security Model
-
-NodeSight uses signed identity tokens to prevent spoofed telemetry.
-
-```
-NodeSight
-   ↓
-Identity Token Engine
-   ↓
-Verified Security Event
-```
-
-This ensures only trusted nodes can submit events.
-
----
-
-# License
-
-MIT License
-
----
-
+📜 License & Acknowledgments
+Created by Erik Gordon (@erikg713)
