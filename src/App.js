@@ -3,7 +3,46 @@ import * as mobilenet from '@tensorflow-models/mobilenet';
 import '@tensorflow/tfjs';
 import { Camera, Upload, AlertCircle, Loader2 } from 'lucide-react';
 import './App.css'; // Assuming basic styling
+import React, { useRef } from 'react';
+import { NodeSightProvider } from './context/NodeSightContext';
+import VideoFeed from './components/Camera/VideoFeed';
+import Controls from './components/Camera/Controls';
+import LiveMetrics from './components/Analysis/LiveMetrics';
 
+function App() {
+  const videoRef = useRef(null);
+
+  return (
+    <NodeSightProvider>
+      <div className="min-h-screen bg-slate-950 text-white p-8 font-sans">
+        <header className="mb-8">
+          <h1 className="text-3xl font-black tracking-tighter text-cyan-400">
+            NODE_SIGHT <span className="text-white opacity-20">// AI_CLUSTER_V2</span>
+          </h1>
+        </header>
+
+        <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left: Vision Column */}
+          <div className="lg:col-span-2 space-y-6">
+            <VideoFeed videoRef={videoRef} />
+            <Controls videoRef={videoRef} />
+          </div>
+
+          {/* Right: Data Column */}
+          <div className="space-y-6">
+            <LiveMetrics />
+            <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-xs opacity-50">
+              <p>System Ready. Latency: --ms</p>
+              <p>Buffer: Optimized (JPEG 0.7)</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    </NodeSightProvider>
+  );
+}
+
+export default App;
 function App() {
   const [model, setModel] = useState(null);
   const [imageURL, setImageURL] = useState(null);
