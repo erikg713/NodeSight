@@ -1,6 +1,6 @@
 /**
  * CameraService
- * Interfaces with the browser's MediaDevices API.
+ * Manages hardware access and frame extraction.
  */
 class CameraService {
   constructor() {
@@ -21,14 +21,16 @@ class CameraService {
   }
 
   /**
-   * Grabs a frame from the video track without stopping the stream.
+   * Captures the current video frame as a Blob or DataURL
    */
   captureFrame(videoElement) {
+    if (!videoElement) return null;
     const canvas = document.createElement('canvas');
     canvas.width = videoElement.videoWidth;
     canvas.height = videoElement.videoHeight;
-    canvas.getContext('2d').drawImage(videoElement, 0, 0);
-    return canvas.toDataURL('image/jpeg');
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(videoElement, 0, 0);
+    return canvas.toDataURL('image/jpeg', 0.9);
   }
 
   stop() {
