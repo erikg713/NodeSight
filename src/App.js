@@ -1,214 +1,118 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as mobilenet from '@tensorflow-models/mobilenet';
 import '@tensorflow/tfjs';
-import { Camera, Upload, AlertCircle, Loader2 } from 'lucide-react';
-import './App.css'; // Assuming basic styling
-import React, { useRef } from 'react';
-import { NodeSightProvider } from './context/NodeSightContext';
+import { Camera, AlertCircle, Loader2, Cpu, Globe } from 'lucide-react';
+
+// Services & Context
+import { NodeSightProvider, useNodeSight } from './context/NodeSightContext';
 import VideoFeed from './components/Camera/VideoFeed';
 import Controls from './components/Camera/Controls';
 import LiveMetrics from './components/Analysis/LiveMetrics';
 
-function App() {
+const AppContent = () => {
   const videoRef = useRef(null);
-
-  return (
-    <NodeSightProvider>
-      <div className="min-h-screen bg-slate-950 text-white p-8 font-sans">
-        <header className="mb-8">
-          <h1 className="text-3xl font-black tracking-tighter text-cyan-400">
-            NODE_SIGHT <span className="text-white opacity-20">// AI_CLUSTER_V2</span>
-          </h1>
-        </header>
-
-        <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left: Vision Column */}
-          <div className="lg:col-span-2 space-y-6">
-            <VideoFeed videoRef={videoRef} />
-            <Controls videoRef={videoRef} />
-          </div>
-
-          {/* Right: Data Column */}
-          <div className="space-y-6">
-            <LiveMetrics />
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-xs opacity-50">
-              <p>System Ready. Latency: --ms</p>
-              <p>Buffer: Optimized (JPEG 0.7)</p>
-            </div>
-          </div>
-        </main>
-      </div>
-    </NodeSightProvider>
-  );
-}
-
-export default App;
-function App() {
-  const [model, setModel] = useState(null);
-  const [imageURL, setImageURL] = useState(null);
-  const [results, setResults] = useState([]);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [error, setError] = useState(null);
+  const [localModel, setLocalModel] = useState(null);
   const [piUser, setPiUser] = useState(null);
-  
-  const imageRef = useRef(null);
-  const fileInputRef = useRef(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const { results: clusterResults, status } = useNodeSight();
 
-  // Initialize Pi SDK and TensorFlow Model
   useEffect(() => {
-    const initializeNodeSight = async () => {
+    const initApp = async () => {
       try {
-        // Authenticate with Pi Network
+        // 1. Pi Network Auth
         if (window.Pi) {
-          const scopes = ['username'];
-          const authResults = await window.Pi.authenticate(scopes, onIncompletePaymentFound);
-          setPiUser(authResults.user.username);
+          const auth = await window.Pi.authenticate(['username'], (p) => console.log(p));
+          setPiUser(auth.user.username);
         }
 
-        // Load the lightweight MobileNet model
-        const loadedModel = await mobilenet.load({ version: 2, alpha: 1.0 });
-        setModel(loadedModel);
+        // 2. Load Local TensorFlow Model for "Edge" pre-processing
+        const model = await mobilenet.load({ version: 2, alpha: 1.0 });
+        setLocalModel(model);
+        
         setIsInitializing(false);
       } catch (err) {
-        console.error("Initialization error:", err);
-        setError("Failed to initialize NodeSight. Please ensure camera access and Pi Browser environment.");
+        console.error("Initialization failed", err);
         setIsInitializing(false);
       }
     };
-
-    initializeNodeSight();
+    initApp();
   }, []);
-
-  // Required callback for Pi SDK payments (stubbed for now)
-  const onIncompletePaymentFound = (payment) => {
-    console.log("Incomplete payment found:", payment);
-  };
-
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setImageURL(url);
-      setResults([]);
-      setError(null);
-    } else {
-      setError("Camera access denied or no image selected.");
-    }
-  };
-
-  const analyzeImage = async () => {
-    if (!model || !imageRef.current) return;
-    
-    setIsAnalyzing(true);
-    try {
-      // Run the image through the distributed local node (browser)
-      const classifications = await model.classify(imageRef.current);
-      setResults(classifications);
-    } catch (err) {
-      console.error("Analysis error:", err);
-      setError("Failed to analyze the image. Please try again.");
-    }
-    setIsAnalyzing(false);
-  };
 
   if (isInitializing) {
     return (
-      <div className="flex-center full-height">
-        <Loader2 className="spinner" size={48} />
-        <h2>Initializing NodeSight AI...</h2>
-        <p>Syncing lightweight neural nets...</p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-cyan-400">
+        <Loader2 className="animate-spin mb-4" size={48} />
+        <h2 className="text-xl font-bold tracking-widest uppercase">Initializing NodeSight AI</h2>
+        <p className="text-sm opacity-50">Syncing local & cluster neural nets...</p>
       </div>
     );
   }
 
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <h1>NodeSight</h1>
-        {piUser && <span className="user-badge">Pioneer: {piUser}</span>}
+    <div className="min-h-screen bg-slate-950 text-white p-4 md:p-8 font-sans">
+      {/* Header Section */}
+      <header className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+        <div>
+          <h1 className="text-2xl font-black tracking-tighter text-cyan-400">
+            NODE_SIGHT <span className="text-white opacity-20">// AI_CLUSTER_V2</span>
+          </h1>
+          {piUser && <p className="text-[10px] text-orange-400 uppercase font-bold">Pioneer: {piUser}</p>}
+        </div>
+        
+        <div className="flex gap-4">
+          <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
+            <Cpu size={14} className="text-purple-400" />
+            <span className="text-[10px] font-mono">EDGE: {localModel ? 'READY' : 'LOAD'}</span>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
+            <Globe size={14} className="text-cyan-400" />
+            <span className="text-[10px] font-mono">CLUSTER: {status.toUpperCase()}</span>
+          </div>
+        </div>
       </header>
 
-      <main className="main-content">
-        {error && (
-          <div className="error-banner">
-            <AlertCircle size={20} />
-            <p>{error}</p>
+      {/* Main Analysis Grid */}
+      <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Viewport - Takes 2 columns */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-cyan-500/10">
+            <VideoFeed videoRef={videoRef} />
           </div>
-        )}
-
-        <div className="image-viewer">
-          {imageURL ? (
-            <img 
-              src={imageURL} 
-              alt="Subject to analyze" 
-              ref={imageRef} 
-              crossOrigin="anonymous" 
-            />
-          ) : (
-            <div className="placeholder">
-              <Camera size={64} className="placeholder-icon" />
-              <p>Capture an object to begin</p>
-            </div>
-          )}
+          <Controls videoRef={videoRef} />
         </div>
 
-        <div className="controls">
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            ref={fileInputRef}
-            onChange={handleImageUpload}
-            style={{ display: 'none' }}
-          />
+        {/* Sidebar - Data & Intelligence */}
+        <div className="space-y-6">
+          <LiveMetrics />
           
-          {!imageURL ? (
-             <button 
-              className="btn primary"
-              onClick={() => fileInputRef.current.click()}
-            >
-              <Camera size={20} />
-              Scan Object
-            </button>
-          ) : (
-            <div className="action-group">
-              <button 
-                className="btn secondary"
-                onClick={() => fileInputRef.current.click()}
-              >
-                <Upload size={20} />
-                Retake
-              </button>
-              <button 
-                className="btn primary"
-                onClick={analyzeImage}
-                disabled={isAnalyzing}
-              >
-                {isAnalyzing ? <Loader2 className="spinner" size={20} /> : "Run AI Analysis"}
-              </button>
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 border border-white/10">
+            <h3 className="text-xs font-bold text-slate-500 uppercase mb-4 tracking-widest">System Telemetry</h3>
+            <div className="space-y-3 font-mono text-[11px]">
+              <div className="flex justify-between text-slate-400">
+                <span>Protocol</span>
+                <span className="text-white">WSS / SOCKET.IO</span>
+              </div>
+              <div className="flex justify-between text-slate-400">
+                <span>Compression</span>
+                <span className="text-white">JPEG / 0.7Q</span>
+              </div>
+              <div className="flex justify-between text-slate-400">
+                <span>Inference</span>
+                <span className="text-green-400">HYBRID_MODE</span>
+              </div>
             </div>
-          )}
-        </div>
-
-        {results.length > 0 && (
-          <div className="results-container">
-            <h3>Analysis Results</h3>
-            <ul className="results-list">
-              {results.map((result, index) => (
-                <li key={index} className="result-item">
-                  <span className="class-name">{result.className}</span>
-                  <span className="probability">
-                    {(result.probability * 100).toFixed(1)}%
-                  </span>
-                </li>
-              ))}
-            </ul>
           </div>
-        )}
+        </div>
       </main>
     </div>
   );
-}
+};
 
-export default App;
+// Root Component wrapped in Provider
+export default function App() {
+  return (
+    <NodeSightProvider>
+      <AppContent />
+    </NodeSightProvider>
+  );
+}
