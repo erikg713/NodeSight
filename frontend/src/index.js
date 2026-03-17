@@ -1,14 +1,20 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
+import ReactDOM from 'react-dom/client';
 import App from './App';
-import './index.css'; // Global styles and CSS resets
+import './styles/main.css';
 
-// Target the root div defined in your public/index.html
-const container = document.getElementById('root');
-const root = createRoot(container);
+/**
+ * NodeSight Frontend Entry Point
+ * Optimized for Pi Browser & Sentenial-X AI Integration
+ */
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
 );
+
+// If you plan to measure performance (highly recommended for AI frames),
+// you can add reportWebVitals() here.
