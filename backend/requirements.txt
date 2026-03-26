@@ -1,15 +1,15 @@
 # Core
-Flask==2.3.4
-requests==2.31.0
+Flask==3.1.3
+requests==2.32.4
 websocket-client==1.6.3
 redis==5.2.0
-pillow==10.1.0
+pillow==12.1.1
 
 # OCR
 pytesseract==0.3.11
 
 # PyTorch (GPU recommended)
-torch==2.3.0
+torch==2.8.0
 torchvision==0.18.1
 torchaudio==2.3.0
 
