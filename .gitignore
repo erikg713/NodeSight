@@ -1,24 +1,171 @@
-# Python-specific
-*.py[cod]
-__pycache__/
-
-# Virtual environment
-.venv/
-env/
-venv/
-
-# Jupyter Notebook
-.ipynb_checkpoints/
-
-# Pytest
-.coverage
-*.cover
+# ============================================================================
+# Python Development
+# ============================================================================
 
 # Byte-compiled / optimized / DLL files
+__pycache__/
 *.py[cod]
+*$py.class
+
+# C extensions
+*.so
 
 # Distribution / packaging
 .Python
 build/
+develop-eggs/
 dist/
+downloads/
+ega/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
 *.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ============================================================================
+# Testing & Coverage
+# ============================================================================
+
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py.cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# ============================================================================
+# Virtual Environments
+# ============================================================================
+
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.env
+.envrc
+
+# ============================================================================
+# IDE & Editor Configuration
+# ============================================================================
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.vim/
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# Cursor (AI-powered editor)
+.cursorignore
+.cursorindexingignore
+
+# ============================================================================
+# Type Checking & Linting
+# ============================================================================
+
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
+
+# ============================================================================
+# Jupyter & Notebooks
+# ============================================================================
+
+.ipynb_checkpoints/
+*.ipynb
+
+# ============================================================================
+# Project-Specific
+# ============================================================================
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+db.sqlite3-journal
+
+# OS
+.DS_Store
+Thumbs.db
+.directory
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# ============================================================================
+# Build & Documentation
+# ============================================================================
+docs/_build/
+site/
+dist/
+build/
+
+# ============================================================================
+# Framework-Specific (Optional - Uncomment as needed)
+# ============================================================================
+
+# Django
+# local_settings.py
+
+# Flask
+# instance/
+
+# Scrapy
+# .scrapy
+
+# Sphinx
+# docs/_build/
