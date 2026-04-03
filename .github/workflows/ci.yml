@@ -1,1 +1,38 @@
+name: CI & Code Enforcement
 
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-test-repair:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Install dependencies (Node, Python, etc.)
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm ci
+
+      # Lint code
+      - name: Run Linter
+        run: npm run lint
+
+      # Automated repair
+      - name: Auto-fix Linter Issues
+        run: |
+          npm run lint:fix || true
+          git config --global user.name "CI Bot"
+          git config --global user.email "ci@sentenial-x.io"
+          git commit -am "Auto-fix lint issues" || echo "No changes to commit"
+          git push || echo "Push skipped"
+
+      # Run tests
+      - name: Run Tests
+        run: npm test
