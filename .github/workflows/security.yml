@@ -1,1 +1,31 @@
+name: Security Enforcement
 
+on:
+  workflow_run:
+    workflows: ["CI & Code Enforcement"]
+    types:
+      - completed
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Scan repository
+      - name: Trivy FS Scan
+        uses: aquasecurity/trivy-action@v0.20.0
+        with:
+          scan-type: fs
+          severity: CRITICAL,HIGH
+          exit-code: 1
+
+      # Optional: container scan if Dockerfile exists
+      - name: Trivy Docker Scan
+        uses: aquasecurity/trivy-action@v0.20.0
+        with:
+          scan-type: image
+          image-ref: erikg713/nodesight:latest
+          severity: CRITICAL,HIGH
+          exit-code: 1
