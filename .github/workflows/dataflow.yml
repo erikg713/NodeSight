@@ -1,0 +1,76 @@
+name: Dataflow Pipeline
+
+on:
+  workflow_dispatch: # manual trigger for testing
+  push:
+    branches: [main]
+
+jobs:
+  client-upload:
+    name: Client Image Upload + Preprocessing
+    runs-on: ubuntu-latest
+    outputs:
+      compressed-image: ${{ steps.compress.outputs.image-path }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Image Compression + Edge Inference
+        id: compress
+        run: |
+          echo "Compressing image..."
+          # Placeholder: compress image and run edge model
+          echo "image-path=./tmp/compressed_image.png" >> $GITHUB_OUTPUT
+
+      - name: Send via WebSocket to Gateway
+        run: |
+          echo "Sending image to Gateway via WebSocket..."
+          # Placeholder WebSocket client code
+
+  gateway:
+    name: Gateway Processing (Validation + Load Balancing)
+    needs: client-upload
+    runs-on: ubuntu-latest
+    outputs:
+      redis-queue-id: ${{ steps.push-redis.outputs.queue-id }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate & Load Balance
+        run: |
+          echo "Validating and load balancing incoming image..."
+          # Placeholder validation
+
+      - name: Push to Redis Queue
+        id: push-redis
+        run: |
+          echo "Pushing task to Redis queue..."
+          echo "queue-id=task12345" >> $GITHUB_OUTPUT
+
+  workers:
+    name: Worker Processing (Parallel)
+    needs: gateway
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        worker: [worker1, worker2, worker3] # Simulate multiple workers
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Process Task in Parallel
+        run: |
+          echo "Worker ${{ matrix.worker }} processing task ${{ needs.gateway.outputs.redis-queue-id }}..."
+          # Placeholder: simulate processing
+          sleep 5
+          echo "Result stored in Redis"
+
+  client-display:
+    name: Stream Results Back to Client
+    needs: workers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Retrieve from Redis & Display
+        run: |
+          echo "Streaming results back to client..."
+          # Placeholder: simulate streaming and display
