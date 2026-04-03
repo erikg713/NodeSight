@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Install dependencies (Node, Python, etc.)
+      # Install Node.js (adjust if Python or other stack)
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -24,15 +24,21 @@ jobs:
       - name: Run Linter
         run: npm run lint
 
-      # Automated repair
+      # Auto-fix lint issues and push back
       - name: Auto-fix Linter Issues
         run: |
           npm run lint:fix || true
           git config --global user.name "CI Bot"
-          git config --global user.email "ci@sentenial-x.io"
+          git config --global user.email "ci@nodesight.io"
           git commit -am "Auto-fix lint issues" || echo "No changes to commit"
           git push || echo "Push skipped"
 
       # Run tests
       - name: Run Tests
         run: npm test
+
+      # Sentenial-X AST Auto-Fix Hook
+      - name: Sentenial-X AST Enforcement
+        run: |
+          echo "Running AST transformer for structural integrity..."
+          python scripts/sentenial_x_transformer.py || exit 1
