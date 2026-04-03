@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Verify Image Signature
+      - name: Verify Docker Image Signature
         run: |
           cosign verify erikg713/nodesight:latest || exit 1
 
       - name: Deploy to Kubernetes / Server
         run: |
-          echo "Deploying verified image..."
-          # kubectl apply -f k8s/
+          echo "Deploying verified image to production..."
+          # kubectl apply -f k8s/ or server deployment script
