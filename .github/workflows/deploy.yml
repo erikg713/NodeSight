@@ -1,1 +1,21 @@
+name: Deployment with Integrity Gate
 
+on:
+  workflow_run:
+    workflows: ["Docker Build & Push"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verify Image Signature
+        run: |
+          cosign verify erikg713/nodesight:latest || exit 1
+
+      - name: Deploy to Kubernetes / Server
+        run: |
+          echo "Deploying verified image..."
+          # kubectl apply -f k8s/
